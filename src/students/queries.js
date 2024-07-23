@@ -1,25 +1,25 @@
-const checkuser = "Select * from users where username=$1";
-const checkclass = "select class_id from students where student_id=$1";
+const checkuser = "Select * from public.users where username=$1";
+const checkclass = "select class_id from public.students where student_id=$1";
 const allstudents =
-  "Select student_id,first_name,last_name,email,student_roll,phone,gender,classes.class_name from students join classes on students.class_id=classes.class_id  order by classes.class_id";
+  "Select student_id,first_name,last_name,email,student_roll,phone,gender,classes.class_name from public.students join public.classes on students.class_id=classes.class_id  order by classes.class_id";
 const checkstudent = "select * from public.students where email=$1";
 const adduser =
-  "INSERT INTO users (username, password, role) VALUES ($1, $2, $3)";
+  "INSERT INTO public.users (username, password, role) VALUES ($1, $2, $3)";
 const leavereq =
-  "Insert into leave_requests (user_id,leave_type,start_date,end_date,reason) values ($1,$2, $3,$4,$5)";
-const pendleaves = "Select * from leave_requests where Status='Pending' ";
+  "Insert into public.leave_requests (user_id,leave_type,start_date,end_date,reason) values ($1,$2, $3,$4,$5)";
+const pendleaves = "Select * from public.leave_requests where Status='Pending' ";
 const editleaves =
-  "UPDATE leave_requests SET status=$1,admin_comment=$2 where request_id=$3";
-const checkroll = "Select * from students where student_id=$1";
-const feepayment = `INSERT INTO payment (student_id, amount, payment_date, payment_method,token)
+  "UPDATE public.leave_requests SET status=$1,admin_comment=$2 where request_id=$3";
+const checkroll = "Select * from public.students where student_id=$1";
+const feepayment = `INSERT INTO public.payment (student_id, amount, payment_date, payment_method,token)
 VALUES ($1,$2,'2024-04-28', 'credit_cash',$3);`;
-const classstudents = `SELECT student_id, first_name, last_name FROM Students JOIN Classes  ON students.class_id = classes.class_id WHERE classes.class_name = 'Class 2B'`;
+const classstudents = `SELECT student_id, first_name, last_name FROM public.Students JOIN public.Classes  ON students.class_id = classes.class_id WHERE classes.class_name = 'Class 2B'`;
 
-const feedetails = `SELECT f.amount,  COALESCE(SUM(p.amount),0) as amount_paid , f.amount - COALESCE(SUM(p.amount), 0) AS remaining_amount FROM Fee f LEFT JOIN Payment p ON f.student_id = p.student_id
+const feedetails = `SELECT f.amount,  COALESCE(SUM(p.amount),0) as amount_paid , f.amount - COALESCE(SUM(p.amount), 0) AS remaining_amount FROM public.Fee f LEFT JOIN public.Payment p ON f.student_id = p.student_id
 WHERE f.student_id = $1
 GROUP BY f.student_id, f.amount;`;
-const transactions = `select *from payment where student_id=$1 `;
-const statusupdate = `UPDATE fee AS f
+const transactions = `select *from public.payment where student_id=$1 `;
+const statusupdate = `UPDATE public.fee AS f
 SET payment_status = 
     CASE
         WHEN f.amount - COALESCE((SELECT SUM(p.amount) FROM payment AS p WHERE p.student_id = f.student_id), 0) = 0 THEN 'paid'
@@ -33,27 +33,27 @@ const checkattendance = `
     student_id,
     (COUNT(CASE WHEN status = 'present' THEN 1 END) / CAST(COUNT(*) AS FLOAT)) * 100 AS attendance_percentage
 FROM 
-    attendance
+    public.attendance
 	WHERE 
     student_id = $1
 GROUP BY 
     student_id;`;
 
 const class_subjects = `SELECT c.class_subject_id, c.class_id, c.subject_id, c.teacher_id, s.subject_name, t.teacher_name
-FROM class_subjects c
-JOIN subjects s ON c.subject_id = s.subject_id
-JOIN teachers t ON c.teacher_id = t.teacher_id
+FROM public.class_subjects c
+JOIN public.subjects s ON c.subject_id = s.subject_id
+JOIN public.teachers t ON c.teacher_id = t.teacher_id
 WHERE c.class_id = $1;
 `;
-const dailyattendance = `select * from attendance
+const dailyattendance = `select * from public.attendance
 where student_id=$1`;
 
-const studentposts = `select * from posts
+const studentposts = `select * from public.posts
 where role='Student'`;
 
 const getquizes = `SELECT q.quiz_id,q.quiz_title,quiz_date
-FROM quiz q
-LEFT JOIN submissions s ON q.quiz_id = s.quiz_id AND s.student_id = $1
+FROM public.quiz q
+LEFT JOIN public.submissions s ON q.quiz_id = s.quiz_id AND s.student_id = $1
 WHERE s.submission_id IS NULL and q.class_id=$2`;
 const getquizquestions = `SELECT
     q.quiz_id,
@@ -63,9 +63,9 @@ const getquizquestions = `SELECT
     qq.options,
     qq.correct_answer
 FROM
-    quiz q
+    public.quiz q
 JOIN
-    quiz_questions qq ON q.quiz_id = qq.quiz_id 
+    public.quiz_questions qq ON q.quiz_id = qq.quiz_id 
     where q.quiz_id=$1`;
 // const addrecent = `WITH answer_status AS (
 //     SELECT
@@ -128,15 +128,15 @@ const recentquiz = `WITH score_calculation AS (
         COUNT(*) FILTER (WHERE result = 'Correct') AS total_correct,
         COUNT(*) FILTER (WHERE result = 'Correct') AS score
     FROM
-        quiz_results
+        public.quiz_results
     WHERE
         student_id = $1 AND quiz_id = $2
     GROUP BY
         student_id, quiz_id
 )
-INSERT INTO recents (student_id, quiz_id, attempted_at, score, total_questions, total_correct)
+INSERT INTO public.recents (student_id, quiz_id, attempted_at, score, total_questions, total_correct)
 SELECT student_id, quiz_id, CURRENT_TIMESTAMP, score, total_questions, total_correct
-FROM score_calculation
+FROM public.score_calculation
 ON CONFLICT (student_id, quiz_id) DO UPDATE SET
     attempted_at = EXCLUDED.attempted_at,
     score = EXCLUDED.score,
@@ -157,14 +157,14 @@ WITH answer_status AS (
             ELSE 'Incorrect'
         END AS answer_status
     FROM
-        subjson s
-    CROSS JOIN LATERAL (
+        public.subjson s
+    CROSS JOIN public.LATERAL (
         SELECT
             jsonb_object_keys(s.sub_answers) AS question_id,
             s.sub_answers->jsonb_object_keys(s.sub_answers) AS submitted_answer
     ) sqa
     JOIN
-        quiz_questions qq ON qq.question_id::TEXT = sqa.question_id
+       public.quiz_questions qq ON qq.question_id::TEXT = sqa.question_id
     WHERE
         s.student_id = $1 AND s.quiz_id = $2
 ),
@@ -175,7 +175,7 @@ summary AS (
         COUNT(*) AS total_questions,
         SUM(CASE WHEN answer_status = 'Correct' THEN 1 ELSE 0 END) AS correct_answers
     FROM
-        answer_status
+        public.answer_status
     GROUP BY
         student_id, quiz_id
 )
@@ -188,9 +188,9 @@ SELECT distinct
     a.answer_status,
     ROUND((s.correct_answers::numeric / s.total_questions::numeric) * 100, 2) AS percentage
 FROM
-    answer_status a
+    public.answer_status a
 JOIN
-    summary s ON a.student_id = s.student_id AND a.quiz_id = s.quiz_id;
+    public.summary s ON a.student_id = s.student_id AND a.quiz_id = s.quiz_id;
 
 `;
 const quiz_answers = `WITH comparison AS (
@@ -205,38 +205,38 @@ const quiz_answers = `WITH comparison AS (
             ELSE 'Incorrect'
           END AS result
         FROM
-          submissions sa
+          public.submissions sa
         JOIN
-          quiz_questions ca ON sa.question_id = ca.question_id
+          public.quiz_questions ca ON sa.question_id = ca.question_id
         WHERE
           sa.student_id = $1 AND sa.quiz_id = $2
       )
-      INSERT INTO quiz_results (student_id, quiz_id, question_id, submitted_answer, correct_answer, result)
+      INSERT INTO public.quiz_results (student_id, quiz_id, question_id, submitted_answer, correct_answer, result)
       SELECT student_id, quiz_id, question_id, submitted_answer, correct_answer, result
-      FROM comparison
+      FROM public.comparison
       ON CONFLICT (student_id, quiz_id, question_id) DO UPDATE SET
     submitted_answer = EXCLUDED.submitted_answer,
     correct_answer = EXCLUDED.correct_answer,
     result = EXCLUDED.result;`;
-const submitanswersjson = `INSERT INTO subjson (student_id, quiz_id, sub_answers)
+const submitanswersjson = `INSERT INTO public.subjson (student_id, quiz_id, sub_answers)
 VALUES ($1, $2, $3);`;
 
 const getassignments = `SELECT q.assignment_id,q.title,q.due_date
-FROM assignments q
-LEFT JOIN assignment_submissions s ON q.assignment_id = s.assignment_id
+FROM public.assignments q
+LEFT JOIN public.assignment_submissions s ON q.assignment_id = s.assignment_id
  AND s.student_id = $1
 WHERE s.submission_id IS NULL and q.class_id=$2`;
 
-const assignmentinfo = `select * from assignments where assignment_id=$1 `;
+const assignmentinfo = `select * from public.assignments where assignment_id=$1 `;
 // const getmessages = `select m.content,m.timestamp,t.teacher_name from messages as m join teachers as t on m.teacher_id=t.teacher_id where m.class_id=$1 and m.teacher_id=$2`;
-const getmessages = `select * from messages where class_subject_id=$1`;
+const getmessages = `select * from public.messages where class_subject_id=$1`;
 
 const getreport = `
 select mark_id,student_id,marks.class_subject_id,marks, subject ,
 	exam_schedule.total_marks
-	from marks 
-join class_subjects on marks.class_subject_id=class_subjects.class_subject_id
-join exam_schedule on marks.exam_schedule_id=exam_schedule.id
+	from public.marks 
+join public.class_subjects on marks.class_subject_id=class_subjects.class_subject_id
+join public.exam_schedule on marks.exam_schedule_id=exam_schedule.id
 where student_id=$1 and marks.exam_id=$2`;
 
 
