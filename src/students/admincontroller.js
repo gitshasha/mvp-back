@@ -107,7 +107,7 @@ const calculateUnpaidLeaveDeductions = async (teacherId, month, year) => {
   try {
     // Get the basic salary for the teacher
     const salaryRes = await pool.query(
-      "SELECT basic_salary FROM salaries WHERE teacher_id = $1",
+      "SELECT basic_salary FROM public.salaries WHERE teacher_id = $1",
       [teacherId]
     );
     if (salaryRes.rows.length === 0) {
@@ -120,7 +120,7 @@ const calculateUnpaidLeaveDeductions = async (teacherId, month, year) => {
     const leaveRes = await pool.query(
       `
       SELECT COUNT(*) AS unpaid_leaves
-      FROM leaves
+      FROM public.leaves
       WHERE teacher_id = $1 AND EXTRACT(MONTH FROM leave_date) = $2 AND EXTRACT(YEAR FROM leave_date) = $3 AND is_paid = FALSE
     `,
       [teacherId, month, year]
@@ -142,7 +142,7 @@ const insertSalaryWithDeductions = async (teacherId, month, year) => {
     const salaryDetailsRes = await pool.query(
       `
       SELECT basic_salary, allowances, income_tax, retirement_contribution, health_insurance, other_deductions
-      FROM salaries
+      FROM public.salaries
       WHERE teacher_id = $1
       ORDER BY payment_date DESC
       LIMIT 1;
@@ -301,7 +301,7 @@ const upload = async (req, res) => {
 };
 const getexamschedule = async (req, res) => {
   pool.query(
-    `select * from exam_schedule join exams on exam_schedule.exam_id=exams.exam_id`,
+    `select * from public.exam_schedule join public.exams on exam_schedule.exam_id=exams.exam_id`,
     (err, result) => {
       if (!err) {
         res.status(200).json(result.rows);
@@ -333,7 +333,7 @@ const updateexamdetails = async (req, res) => {
 
   try {
     await pool.query(
-      "UPDATE exam_schedule SET exam_id = $1, subject = $2, class_grade_id = $3, exam_date = $4, exam_time = $5, no_of_hours = $6 WHERE id = $7",
+      "UPDATE public.exam_schedule SET exam_id = $1, subject = $2, class_grade_id = $3, exam_date = $4, exam_time = $5, no_of_hours = $6 WHERE id = $7",
       [
         exam_id,
         subject,
@@ -355,7 +355,7 @@ const deleteExam = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await pool.query(`delete from exam_schedule where id=${id}`);
+    await pool.query(`delete from public.exam_schedule where id=${id}`);
     res.status(200).json({ msg: "deleted" });
   } catch (err) {
     console.log(err);
@@ -366,8 +366,8 @@ const allstudentsfee = async (req, res) => {
   try {
     const result =
       await pool.query(`select students.student_id,students.first_name,students.last_name, 
-fee.amount,fee.payment_status,fee.due_date from students
-join fee on students.student_id=fee.student_id`);
+fee.amount,fee.payment_status,fee.due_date from public.students
+join public.fee on students.student_id=fee.student_id`);
     res.status(200).json(result.rows);
   } catch (err) {
     console.log(err);
@@ -376,7 +376,7 @@ join fee on students.student_id=fee.student_id`);
 const getteachers = async (req, res) => {
   try {
     const result = await pool.query(
-      `select teacher_id,teacher_name,email from teachers `
+      `select teacher_id,teacher_name,email from public.teachers `
     );
     res.status(200).json(result.rows);
   } catch (err) {
@@ -389,7 +389,7 @@ const teacherAttend=async(req,res)=>{
 
   try {
     const result = await pool.query(
-      `select * from teachers_attendance where teacher_id=$1`,
+      `select * from public.teachers_attendance where teacher_id=$1`,
       [teacherId]
     );
     res.status(200).json(result.rows);
@@ -404,8 +404,8 @@ const teacherAttend=async(req,res)=>{
 const getallclasses=async(req,res)=>{
 try {
   const result = await pool.query(
-    `select class_id,class_name,teacher_id,classes.class_grade_id,class_grade from classes
-	join class_grades on class_grades.class_grade_id=classes.class_grade_id`,
+    `select class_id,class_name,teacher_id,classes.class_grade_id,class_grade from public.classes
+	join public.class_grades on class_grades.class_grade_id=classes.class_grade_id`,
   );
   console.log(result.rows);
   res.status(200).json(result.rows);
@@ -419,8 +419,8 @@ const studentattend=async(req,res)=>{
   
   try {
     const result = await pool.query(
-      `select attendance.student_id,attendance_date,status,class_id,first_name,last_name,student_roll,gender from attendance 
-      join students on students.student_id=attendance.student_id
+      `select attendance.student_id,attendance_date,status,class_id,first_name,last_name,student_roll,gender from public.attendance 
+      join public.students on students.student_id=attendance.student_id
        where class_id=$1`,
       [classId]
     );
@@ -436,8 +436,8 @@ const getteachattenddetails=async(req,res)=>{
   
   try {
     const result = await pool.query(
-      `select attendance.student_id,attendance_date,status,class_id,first_name,last_name,student_roll,gender from attendance 
-      join students on students.student_id=attendance.student_id
+      `select attendance.student_id,attendance_date,status,class_id,first_name,last_name,student_roll,gender from public.attendance 
+      join public.students on students.student_id=attendance.student_id
        where class_id=$1`,
       [teacherId]
     );
