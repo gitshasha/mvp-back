@@ -2,7 +2,7 @@ const checkuser = "Select * from users where username=$1";
 const checkclass = "select class_id from students where student_id=$1";
 const allstudents =
   "Select student_id,first_name,last_name,email,student_roll,phone,gender,classes.class_name from students join classes on students.class_id=classes.class_id  order by classes.class_id";
-const checkstudent = "select * from students where email=$1";
+const checkstudent = "select * from public.students where email=$1";
 const adduser =
   "INSERT INTO users (username, password, role) VALUES ($1, $2, $3)";
 const leavereq =
