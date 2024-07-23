@@ -273,7 +273,7 @@ const submitanswers = async (req, res) => {
 const recentquiz = (req, res) => {
   const student_id = req.params.studentid;
   pool.query(
-    `select * from recents where student_id=$1`,
+    `select * from public.recents where student_id=$1`,
     [student_id],
     (err, resu) => {
       if (!err) {
@@ -289,7 +289,7 @@ const resultpage = (req, res) => {
   const quiz_id = req.body.quiz_id;
 
   pool.query(
-    "select * from quiz_results where student_id=$1 and quiz_id=$2",
+    "select * from public.quiz_results where student_id=$1 and quiz_id=$2",
     [student_id, quiz_id],
     (err, resu) => {
       if (!err) {
@@ -363,7 +363,7 @@ const examdetails = async (req, res) => {
     const results = await pool.query(
       `select students.student_id,students.first_name,classes.class_id,classes.class_grade_id,
 exam_id,subject,exam_date,exam_time,no_of_hours
-from public.students join classes on classes.class_id=students.class_id 
+from public.students join public.classes on classes.class_id=students.class_id 
 join public.exam_schedule on exam_schedule.class_grade_id=classes.class_grade_id
 where student_id=$1 and exam_id=$2`,
       [student_id, exam_id]
