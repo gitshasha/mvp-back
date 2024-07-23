@@ -49,7 +49,6 @@ const login = (req, res) => {
       }
     }
   });
-  pool.end()
 };
 
 const signup = async (req, res) => {
