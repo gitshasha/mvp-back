@@ -4,7 +4,7 @@ const queries = require("./queries");
 
 const getstudent = (req, res) => {
   pool.connect();
-  pool.query(`select * from users`, (err, resul) => {
+  pool.query(`select * from public.users`, (err, resul) => {
     if (!err) {
       res.status(200).json(resul.rows);
     } else {
@@ -79,7 +79,7 @@ const signup = async (req, res) => {
 const getstudentclass = (req, res) => {
   const classid = req.params.classid;
   pool.query(
-    `select * from classes where class_id=${classid}`,
+    `select * from public.classes where class_id=${classid}`,
     (err, resul) => {
       if (!err) {
         res.status(200).json(resul.rows);
@@ -103,7 +103,7 @@ const leave_request = (req, res) => {
 const wholetimetable = (req, res) => {
   const classid = req.params.classid;
   pool.query(
-    `select * from timetable JOIN subjects ON timetable.subject_id = subjects.subject_id JOIN teachers ON timetable.teacher_id = teachers.teacher_id  where class_id=${classid}`,
+    `select * from public.timetable JOIN public.subjects ON timetable.subject_id = subjects.subject_id JOIN public.teachers ON timetable.teacher_id = teachers.teacher_id  where class_id=${classid}`,
     (err, resul) => {
       if (!err) {
         res.status(200).json(resul.rows);
@@ -129,7 +129,7 @@ const getclasstimetable = (req, res) => {
   var dayName = days[d.getDay()];
   console.log(dayName);
   pool.query(
-    `select * from timetable JOIN subjects ON timetable.subject_id = subjects.subject_id JOIN teachers ON timetable.teacher_id = teachers.teacher_id  where class_id=${classid} and lower(day_of_week)=lower('${dayName}')`,
+    `select * from public.timetable JOIN public.subjects ON timetable.subject_id = subjects.subject_id JOIN public.teachers ON timetable.teacher_id = teachers.teacher_id  where class_id=${classid} and lower(day_of_week)=lower('${dayName}')`,
     (err, resul) => {
       if (!err) {
         res.status(200).json(resul.rows);
@@ -208,7 +208,7 @@ const studentposts = (req, res) => {
 const getquizes = (req, res) => {
   const student_id = req.params.studentid;
   pool.query(
-    `select class_id from students where student_id=${student_id}`,
+    `select class_id from public.students where student_id=${student_id}`,
     (err, result) => {
       if (!err) {
         console.log(result.rows);
@@ -306,7 +306,7 @@ const getassignments = (req, res) => {
   const student_id = req.params.studentid;
   console.log(student_id)
   pool.query(
-    `select class_id from students where student_id=${student_id}`,
+    `select class_id from public.students where student_id=${student_id}`,
     (err, result) => {
       if (!err) {
         console.log(result.rows);
@@ -350,7 +350,7 @@ const getmessages = (req, res) => {
 };
 const getexamnames = async (req, res) => {
   try {
-    const result = await pool.query(`select * from exams`);
+    const result = await pool.query(`select * from public.exams`);
 
     res.status(200).json(result.rows);
   } catch (err) {
@@ -363,8 +363,8 @@ const examdetails = async (req, res) => {
     const results = await pool.query(
       `select students.student_id,students.first_name,classes.class_id,classes.class_grade_id,
 exam_id,subject,exam_date,exam_time,no_of_hours
-from students join classes on classes.class_id=students.class_id 
-join exam_schedule on exam_schedule.class_grade_id=classes.class_grade_id
+from public.students join classes on classes.class_id=students.class_id 
+join public.exam_schedule on exam_schedule.class_grade_id=classes.class_grade_id
 where student_id=$1 and exam_id=$2`,
       [student_id, exam_id]
     );
