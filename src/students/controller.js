@@ -22,7 +22,7 @@ const getstudent = (req, res) => {
 
 const login = (req, res) => {
   const { username, password } = req.body;
-
+    pool.connect();
   pool.query(queries.checkstudent, [username], async (err, results) => {
     if (results.rows.length == 0) {
       return res.json({ success: false, user: "does not exist" });
@@ -46,6 +46,7 @@ const login = (req, res) => {
       }
     }
   });
+  pool.end()
 };
 
 const signup = async (req, res) => {
