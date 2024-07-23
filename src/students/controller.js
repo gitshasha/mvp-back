@@ -25,6 +25,9 @@ const login = (req, res) => {
   console.log(username)
     pool.connect();
   pool.query(queries.checkstudent, [username], async (err, results) => {
+     if(err){
+      console.log(err)
+    }
     if (results.rows.length == 0) {
       return res.json({ success: false, user: "does not exist" });
     } else {
