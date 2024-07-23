@@ -22,8 +22,7 @@ const getstudent = (req, res) => {
 
 const login = (req, res) => {
   const { username, password } = req.body;
-  console.log(username)
-    pool.connect();
+  
   pool.query(queries.checkstudent, [username], async (err, results) => {
      if(err){
       console.log(err)
