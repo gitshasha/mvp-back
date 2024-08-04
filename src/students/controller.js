@@ -251,7 +251,7 @@ const submitanswers = async (req, res) => {
 
       // Insert each question_id and answer into the SQL table
       const query = {
-        text: "INSERT INTO submissions (student_id,question_id, submitted_answer,quiz_id) VALUES ($1, $2,$3,$4)",
+        text: "INSERT INTO public.submissions (student_id,question_id, submitted_answer,quiz_id) VALUES ($1, $2,$3,$4)",
         values: [student_id, key, answer, quiz_id],
       };
 
