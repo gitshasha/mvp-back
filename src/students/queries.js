@@ -136,7 +136,7 @@ const recentquiz = `WITH score_calculation AS (
 )
 INSERT INTO public.recents (student_id, quiz_id, attempted_at, score, total_questions, total_correct)
 SELECT student_id, quiz_id, CURRENT_TIMESTAMP, score, total_questions, total_correct
-FROM public.score_calculation
+FROM score_calculation
 ON CONFLICT (student_id, quiz_id) DO UPDATE SET
     attempted_at = EXCLUDED.attempted_at,
     score = EXCLUDED.score,
@@ -158,7 +158,7 @@ WITH answer_status AS (
         END AS answer_status
     FROM
         public.subjson s
-    CROSS JOIN public.LATERAL (
+    CROSS JOIN LATERAL (
         SELECT
             jsonb_object_keys(s.sub_answers) AS question_id,
             s.sub_answers->jsonb_object_keys(s.sub_answers) AS submitted_answer
@@ -175,7 +175,7 @@ summary AS (
         COUNT(*) AS total_questions,
         SUM(CASE WHEN answer_status = 'Correct' THEN 1 ELSE 0 END) AS correct_answers
     FROM
-        public.answer_status
+        answer_status
     GROUP BY
         student_id, quiz_id
 )
@@ -188,9 +188,9 @@ SELECT distinct
     a.answer_status,
     ROUND((s.correct_answers::numeric / s.total_questions::numeric) * 100, 2) AS percentage
 FROM
-    public.answer_status a
+    answer_status a
 JOIN
-    public.summary s ON a.student_id = s.student_id AND a.quiz_id = s.quiz_id;
+    summary s ON a.student_id = s.student_id AND a.quiz_id = s.quiz_id;
 
 `;
 const quiz_answers = `WITH comparison AS (
