@@ -213,7 +213,7 @@ const quiz_answers = `WITH comparison AS (
       )
       INSERT INTO public.quiz_results (student_id, quiz_id, question_id, submitted_answer, correct_answer, result)
       SELECT student_id, quiz_id, question_id, submitted_answer, correct_answer, result
-      FROM public.comparison
+      FROM comparison
       ON CONFLICT (student_id, quiz_id, question_id) DO UPDATE SET
     submitted_answer = EXCLUDED.submitted_answer,
     correct_answer = EXCLUDED.correct_answer,
